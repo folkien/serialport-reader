@@ -35,12 +35,15 @@ int openserial(char *devicename)
         return 0;
     }
     attr = oldterminfo;
-    attr.c_cflag = CS8 | CRTSCTS |  CLOCAL | CREAD;
+    attr.c_cflag = B19200 | CS8 | 0x00 |  CLOCAL | CREAD;
     attr.c_oflag = 0;
-    attr.c_iflag = 0;
-    attr.c_lflag = 0;
-    attr.c_cc[VTIME] = 10;
+    attr.c_iflag = IGNPAR | ICRNL | CR0 | TAB0 | BS0 | VT0 | FF0 ;
+    attr.c_lflag = ICANON;
+    attr.c_cc[VTIME] = 1;
     attr.c_cc[VMIN] = 0;
+#if USE_CTSRTS == 1
+    attr.c_cflag |= CRTSCTS;
+#endif
 
     if (cfsetispeed(&attr, B19200) < 0) {
         perror("set Input speed(): error");
