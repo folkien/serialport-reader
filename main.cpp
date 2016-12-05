@@ -5,8 +5,10 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pthread.h>
 #include <fcntl.h>
 
+bool isRunning = true;
 
 static struct termios oldterminfo;
 
@@ -110,11 +112,27 @@ int RTSvalue(int fd, int value) {
    }
 }
 
+/* this function is run by the second thread */
+void *keyboardReader(void *x_void_ptr)
+{
+    char character;
+    printf("Waiting for pressing enter key.\n");
+    scanf("%c",&character);
+    isRunning = false;
+    return NULL;
+}
 
 int main()
 {
     int fd;
     char *serialdev = "/dev/ttyUSB0";
+    char *testData  = "<12234567890ABCDEFQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm>";
+    pthread_t keyboardThread;
+        /* create a second thread which executes inc_x(&x) */
+  /*  if(pthread_create(&keyboardThread, NULL, keyboardReader, &fd)) {
+        fprintf(stderr, "Error creating thread\n");
+        return 1;
+    }*/
 
     fd = openserial(serialdev);
     if (!fd) {
@@ -122,13 +140,25 @@ int main()
         return 1;
     }
 
+    while (isRunning) {
+        write(fd, testData, sizeof(testData));
+    }
+
+    /*
     for (int i = 0; i<10; ++i) {
         RTSvalue(fd,1);
         sleep(1);
         RTSvalue(fd,0);
         sleep(1);
     }
+    */
 
     closeserial(fd);
+
+    /* wait for the second thread to finish */
+/*    if(pthread_join(keyboardThread, NULL)) {
+        fprintf(stderr, "Error joining thread\n");
+        return 2;
+    }*/
     return 0;
 }
