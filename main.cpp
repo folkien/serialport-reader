@@ -8,10 +8,23 @@
 #include <pthread.h>
 #include <fcntl.h>
 
+#define USE_CTSRTS 1
+#if USE_CTSRTS == 1
+    const char flowVersion[] = "Flow version: CTSRTS.";
+#else
+    const char flowVersion[] = "Flow version: none.";
+#endif
+
 bool isRunning = true;
 
 static struct termios oldterminfo;
 
+void info() {
+    printf("Serial detonator v.0.1.\n"\
+            "%s\n",
+            flowVersion
+            );
+}
 
 void closeserial(int fd)
 {
@@ -131,7 +144,10 @@ int main()
     char *serialdev = "/dev/ttyUSB0";
     char *testData  = "<12234567890ABCDEFQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm>";
     pthread_t keyboardThread;
-        /* create a second thread which executes inc_x(&x) */
+    /* create a second thread which executes inc_x(&x) */
+
+    info();
+
   /*  if(pthread_create(&keyboardThread, NULL, keyboardReader, &fd)) {
         fprintf(stderr, "Error creating thread\n");
         return 1;
@@ -143,9 +159,11 @@ int main()
         return 1;
     }
 
+    printf("Start of data transmission on %s.\n",serialdev);
     while (isRunning) {
         write(fd, testData, sizeof(testData));
     }
+    printf("Stop of data transmission.\n");
 
     /*
     for (int i = 0; i<10; ++i) {
