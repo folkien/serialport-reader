@@ -121,19 +121,27 @@ int setCTS(int fd, int level)
 int RTSvalue(int fd, int value) {
    int RTS_flag = TIOCM_RTS;
    if (value == 1) {
-    ioctl(fd,TIOCMBIS,&RTS_flag);//Set RTS pin
+        if (ioctl(fd,TIOCMBIS,&RTS_flag) != -1) {
+            printf("RTS set 1.\n");
+        };//Set RTS pin
    }
    else {
-    ioctl(fd,TIOCMBIC,&RTS_flag);//Clear RTS printf
+        if (ioctl(fd,TIOCMBIC,&RTS_flag) != -1) {
+            printf("RTS set 0.\n");
+        };
    }
+}
+
+void waitOnKeyPress() {
+    char character;
+    printf("Waiting for pressing enter key.\n");
+    scanf("%c",&character);
 }
 
 /* this function is run by the second thread */
 void *keyboardReader(void *x_void_ptr)
 {
-    char character;
-    printf("Waiting for pressing enter key.\n");
-    scanf("%c",&character);
+    waitOnKeyPress();
     isRunning = false;
     return NULL;
 }
@@ -155,9 +163,14 @@ int main()
 
     fd = openserial(serialdev);
     if (!fd) {
-        fprintf(stderr, "Error while initializing %s.\n", serialdev);
+        fprintf(stderr, "Error while initializing %s. Maybe you should use root privileges?\n", serialdev);
         return 1;
     }
+
+    RTSvalue(fd,0);
+    waitOnKeyPress();
+    RTSvalue(fd,1);
+    waitOnKeyPress();
 
     printf("Start of data transmission on %s.\n",serialdev);
     while (isRunning) {
