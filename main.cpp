@@ -26,6 +26,18 @@ void info() {
             );
 }
 
+char * bombardData = NULL;
+void bombardDataCreate() {
+    unsigned short i = 0;
+    bombardData = (char*)malloc(256*sizeof(char));
+    for (i=0;i<256; i++) {
+        bombardData[i] = i;
+    }
+}
+void bombardDataDestroy() {
+    free(bombardData);
+}
+
 void closeserial(int fd)
 {
     tcsetattr(fd, TCSANOW, &oldterminfo);
@@ -142,7 +154,6 @@ int main()
 {
     int fd;
     char *serialdev = "/dev/ttyUSB0";
-    char *testData  = "<12234567890ABCDEFQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm>";
     pthread_t keyboardThread;
     /* create a second thread which executes inc_x(&x) */
 
@@ -159,11 +170,13 @@ int main()
         return 1;
     }
 
+    bombardDataCreate();
     printf("Start of data transmission on %s.\n",serialdev);
     while (isRunning) {
-        write(fd, testData, sizeof(testData));
+        write(fd, bombardData, sizeof(bombardData));
     }
     printf("Stop of data transmission.\n");
+    bombardDataDestroy();
 
     /*
     for (int i = 0; i<10; ++i) {
